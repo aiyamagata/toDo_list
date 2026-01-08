@@ -41,11 +41,25 @@ def get_sheets_client():
     global _sheets_client
     
     if _sheets_client is None:
-        # credentials.jsonから認証情報を読み込む
-        creds = Credentials.from_service_account_file(
-            "credentials.json",
-            scopes=SCOPE
-        )
+        # 環境変数から認証情報を取得（Renderなどのクラウド環境用）
+        credentials_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+        
+        if credentials_json:
+            # 環境変数からJSON文字列を読み込む
+            import json
+            creds_info = json.loads(credentials_json)
+            creds = Credentials.from_service_account_info(creds_info, scopes=SCOPE)
+        else:
+            # ローカル環境: credentials.jsonファイルから読み込む
+            creds_file = os.getenv("GOOGLE_CREDENTIALS_FILE", "credentials.json")
+            if not os.path.exists(creds_file):
+                raise FileNotFoundError(
+                    f"認証情報ファイル '{creds_file}' が見つかりません。\n"
+                    "ローカル環境では credentials.json を配置してください。\n"
+                    "クラウド環境では GOOGLE_CREDENTIALS_JSON 環境変数を設定してください。"
+                )
+            creds = Credentials.from_service_account_file(creds_file, scopes=SCOPE)
+        
         _sheets_client = gspread.authorize(creds)
     
     return _sheets_client
