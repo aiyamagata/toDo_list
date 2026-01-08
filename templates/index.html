@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Todo一覧 - Todoリストアプリ{% endblock %}
+
+{% block heading %}Todo一覧{% endblock %}
+
+{% block content %}
+    <!-- フィルタリング・並び替えセクション -->
+    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #6aa4b0;">
+        <form method="GET" action="{{ url_for('index') }}" id="filterForm">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                <!-- 完了状態フィルタ -->
+                <div>
+                    <label for="status" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2b4560; font-size: 0.9em; font-family: 'Klee One', cursive;">状態:</label>
+                    <select id="status" name="status" onchange="updateFilters()" style="width: 100%; padding: 8px 12px; border: 2px solid #6aa4b0; border-radius: 5px; font-size: 14px; background: white; cursor: pointer; font-family: 'Klee One', cursive; color: #2b4560;">
+                        <option value="未完了" {% if status_filter == '未完了' %}selected{% endif %}>未完了</option>
+                        <option value="完了" {% if status_filter == '完了' %}selected{% endif %}>完了</option>
+                        <option value="すべて" {% if status_filter == 'すべて' %}selected{% endif %}>すべて</option>
+                    </select>
+                </div>
+                
+                <!-- 重要度フィルタ -->
+                <div>
+                    <label for="priority" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2b4560; font-size: 0.9em; font-family: 'Klee One', cursive;">重要度:</label>
+                    <select id="priority" name="priority" onchange="updateFilters()" style="width: 100%; padding: 8px 12px; border: 2px solid #6aa4b0; border-radius: 5px; font-size: 14px; background: white; cursor: pointer; font-family: 'Klee One', cursive; color: #2b4560;">
+                        <option value="すべて" {% if priority_filter == 'すべて' %}selected{% endif %}>すべて</option>
+                        <option value="高" {% if priority_filter == '高' %}selected{% endif %}>高</option>
+                        <option value="中" {% if priority_filter == '中' %}selected{% endif %}>中</option>
+                        <option value="低" {% if priority_filter == '低' %}selected{% endif %}>低</option>
+                    </select>
+                </div>
+                
+                <!-- 期日フィルタ -->
+                <div>
+                    <label for="due_date" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2b4560; font-size: 0.9em; font-family: 'Klee One', cursive;">期日:</label>
+                    <select id="due_date" name="due_date" onchange="updateFilters()" style="width: 100%; padding: 8px 12px; border: 2px solid #6aa4b0; border-radius: 5px; font-size: 14px; background: white; cursor: pointer; font-family: 'Klee One', cursive; color: #2b4560;">
+                        <option value="すべて" {% if due_date_filter == 'すべて' %}selected{% endif %}>すべて</option>
+                        <option value="今日" {% if due_date_filter == '今日' %}selected{% endif %}>今日</option>
+                        <option value="今週" {% if due_date_filter == '今週' %}selected{% endif %}>今週</option>
+                        <option value="今月" {% if due_date_filter == '今月' %}selected{% endif %}>今月</option>
+                        <option value="期限切れ" {% if due_date_filter == '期限切れ' %}selected{% endif %}>期限切れ</option>
+                        <option value="期日未設定" {% if due_date_filter == '期日未設定' %}selected{% endif %}>期日未設定</option>
+                    </select>
+                </div>
+                
+                <!-- 並び替え -->
+                <div>
+                    <label for="sort" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2b4560; font-size: 0.9em; font-family: 'Klee One', cursive;">並び替え:</label>
+                    <select id="sort" name="sort" onchange="updateFilters()" style="width: 100%; padding: 8px 12px; border: 2px solid #6aa4b0; border-radius: 5px; font-size: 14px; background: white; cursor: pointer; font-family: 'Klee One', cursive; color: #2b4560;">
+                        <option value="priority" {% if sort_by == 'priority' %}selected{% endif %}>重要度順</option>
+                        <option value="due_date" {% if sort_by == 'due_date' %}selected{% endif %}>期日順</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- フィルタクリアボタン -->
+            <div style="text-align: right;">
+                <a href="{{ url_for('index') }}" class="btn" style="background: #2b4560; color: white; padding: 8px 16px; font-size: 14px;">フィルタをクリア</a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- アクションボタン -->
+    <div style="text-align: right; margin-bottom: 20px;">
+        <a href="{{ url_for('add') }}" class="btn btn-success">新しいTodoを追加</a>
+    </div>
+    
+    <!-- 結果表示 -->
+    <div style="margin-bottom: 15px; color: #2f6d80; font-size: 0.9em; font-family: 'Klee One', cursive;">
+        {% if todos %}
+            <strong>{{ todos|length }}件</strong>のTodoが表示されています
+        {% else %}
+            <strong>0件</strong>のTodoが表示されています
+        {% endif %}
+    </div>
+    
+    <div class="todo-list">
+        {% if todos %}
+            {% for todo in todos %}
+                <div class="todo-item" {% if todo.status == '完了' %}style="border-left-color: #6aa4b0; opacity: 0.8; background: rgba(225, 231, 224, 0.5);"{% endif %}>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div class="todo-title" {% if todo.status == '完了' %}style="text-decoration: line-through; color: #2f6d80; opacity: 0.7;"{% endif %}>{{ todo.title }}</div>
+                        {% if todo.priority %}
+                            <span style="padding: 4px 12px; border-radius: 12px; font-size: 0.8em; font-weight: 600; font-family: 'Klee One', cursive;
+                                {% if todo.priority == '高' %}background: #dc3545; color: white;
+                                {% elif todo.priority == '中' %}background: #6aa4b0; color: white;
+                                {% else %}background: #2f6d80; color: white;{% endif %}">
+                                {{ todo.priority }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if todo.content %}
+                        <div class="todo-content" {% if todo.status == '完了' %}style="color: #2f6d80; text-decoration: line-through; opacity: 0.6;"{% endif %}>{{ todo.content }}</div>
+                    {% endif %}
+                    <div class="todo-meta">
+                        <div class="todo-date">
+                            {% if todo.due_date %}
+                                <strong>期日:</strong> {{ todo.due_date }}
+                            {% else %}
+                                <span style="color: #999;">期日未設定</span>
+                            {% endif %}
+                            {% if todo.created_at %}
+                                <br><small>作成日時: {{ todo.created_at }}</small>
+                            {% endif %}
+                            {% if todo.status == '完了' %}
+                                <br><span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; font-weight: bold; margin-top: 5px; display: inline-block;">完了</span>
+                            {% endif %}
+                        </div>
+                        <div class="todo-actions">
+                            {% if todo.status != '完了' %}
+                                <a href="{{ url_for('edit', row=todo.row) }}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 14px;">編集</a>
+                                <form action="{{ url_for('complete', row=todo.row) }}" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn" style="padding: 8px 16px; font-size: 14px; background: #6aa4b0; color: white;" onmouseover="this.style.background='#2f6d80'" onmouseout="this.style.background='#6aa4b0'">完了</button>
+                                </form>
+                            {% endif %}
+                            <form action="{{ url_for('delete', row=todo.row) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn btn-danger" style="padding: 8px 16px; font-size: 14px;" onclick="return confirm('本当に削除しますか？')">削除</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <h2>条件に一致するTodoがありません</h2>
+                <p>フィルタ条件を変更するか、新しいTodoを追加してください。</p>
+                <div style="margin-top: 20px;">
+                    <a href="{{ url_for('index') }}" class="btn" style="margin-right: 10px;">フィルタをクリア</a>
+                    <a href="{{ url_for('add') }}" class="btn btn-success">新しいTodoを追加</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        function updateFilters() {
+            document.getElementById('filterForm').submit();
+        }
+    </script>
+{% endblock %}
+

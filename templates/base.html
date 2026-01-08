@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Todoリストアプリ{% endblock %}</title>
+    <!-- Google Fonts: Klee One -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "Klee One", cursive;
+            font-weight: 400;
+            font-style: normal;
+            background: linear-gradient(135deg, #2b4560 0%, #2f6d80 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #e1e7e0;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(43, 69, 96, 0.3);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #2b4560;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5em;
+            font-weight: 600;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #6aa4b0;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: "Klee One", cursive;
+            font-weight: 400;
+            transition: background 0.3s, transform 0.2s;
+        }
+        
+        .btn:hover {
+            background: #2f6d80;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #6aa4b0;
+        }
+        
+        .btn-success:hover {
+            background: #2f6d80;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-secondary {
+            background: #2b4560;
+        }
+        
+        .btn-secondary:hover {
+            background: #2f6d80;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background: rgba(106, 164, 176, 0.2);
+            color: #2b4560;
+            border: 2px solid #6aa4b0;
+        }
+        
+        .alert-error {
+            background: rgba(220, 53, 69, 0.1);
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        
+        .todo-list {
+            margin-top: 20px;
+        }
+        
+        .todo-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #6aa4b0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(43, 69, 96, 0.1);
+        }
+        
+        .todo-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(43, 69, 96, 0.2);
+        }
+        
+        .todo-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2b4560;
+            margin-bottom: 10px;
+            font-family: "Klee One", cursive;
+        }
+        
+        .todo-content {
+            color: #2b4560;
+            margin-bottom: 10px;
+            line-height: 1.8;
+            opacity: 0.8;
+        }
+        
+        .todo-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #6aa4b0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .todo-date {
+            color: #2f6d80;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .todo-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* スマホ対応 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .todo-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .todo-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .btn {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2b4560;
+            font-weight: 600;
+            font-family: "Klee One", cursive;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #6aa4b0;
+            border-radius: 5px;
+            font-size: 16px;
+            font-family: "Klee One", cursive;
+            font-weight: 400;
+            background: white;
+            color: #2b4560;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2f6d80;
+            box-shadow: 0 0 0 3px rgba(106, 164, 176, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #2f6d80;
+        }
+        
+        .empty-state h2 {
+            margin-bottom: 10px;
+            color: #2b4560;
+            font-family: "Klee One", cursive;
+            font-weight: 600;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <h1>{% block heading %}Todoリストアプリ{% endblock %}</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
+
